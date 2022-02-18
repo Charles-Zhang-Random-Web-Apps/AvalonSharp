@@ -24,7 +24,6 @@
             <button @onclick="() => JoinTeam(member)">@(isMobile ? "Join" : "Join Team")</button>
         }
         @if (currentTeam != null
-         && currentTeam.Leader != member
          && !currentTeam.Votes.Any(v => v.Key == member))
         {
             <button @onclick="() => Vote(member, true)">@(isMobile ? "✔️" : "Vote In Favor")</button>
@@ -191,8 +190,7 @@
     private void Vote(Member member, bool inFavor)
     {
         currentTeam.Votes.Add(member, new Vote(member, inFavor));
-        if(currentTeam.Votes.Count == groupSize
-            || currentTeam.Votes.Count == groupSize - 1)
+        if(currentTeam.Votes.Count == groupSize)
         {
             currentTeam.Success = currentTeam.Votes.Count(v => v.Value.InFavor) >
                 currentTeam.Votes.Count(k => !k.Value.InFavor);
