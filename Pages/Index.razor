@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Models
+@inject IJSRuntime jsRuntime
 
 <div>
     Group Size: <input placeholder="@groupSize" @onchange="@onChange" value="@groupSize" />
@@ -60,7 +61,8 @@
         <button @onclick="() => FinalizeMission(0)">Success</button>
         @for (int i = 1; i <= currentTeam.Teammates.Count; i++)
         {
-            <button @onclick="() => FinalizeMission(i)">Fail with @(i)x👎</button>
+            int localVarForBinding = i;
+            <button @onclick="() => FinalizeMission(localVarForBinding)">Fail with @(i)x👎</button>
         }
     </div>
 </div>
@@ -70,7 +72,7 @@
 {
     var mission = missions[i];
 <div class="pastMissionBox">
-    <h3>Mission @(i+1) (@(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎"))</h3>
+    <h4>Mission @(i+1) (@(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎"))</h4>
     <div>
         <strong>@string.Join(", ", mission.Members.Select(m => m.Name))</strong>
     </div>
@@ -82,16 +84,36 @@
     <textarea rows="6" cols="50" @bind="personalNote" />
 </div>
 
+<h1>@deviceType</h1>
+
 @code {
+    private string deviceType { get; set; }
     private string personalNote { get; set; }
     private int groupSize { get; set; } = 9;
     private Member[] members;
     private List<Team> teams = new List<Team>();
     private List<Mission> missions = new List<Mission>();
+    private DotNetObjectReference<Index>? objRef;
 
     protected override void OnInitialized()
     {
         updateMemberData();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        objRef = DotNetObjectReference.Create(this);
+        await jsRuntime.InvokeVoidAsync("registerDotNetHelper", objRef);
+
+        bool temp = await jsRuntime.InvokeAsync<bool>("isSmallFormFactor");
+        deviceType = temp ? "Mobile" : "Desktop";
+    }
+
+    [JSInvokable]
+    public void performScreenChange(bool smallFactor)
+    {
+        deviceType = smallFactor ? "Mobile" : "Desktop";
+        StateHasChanged();
     }
 
     private void onChange(ChangeEventArgs args)
