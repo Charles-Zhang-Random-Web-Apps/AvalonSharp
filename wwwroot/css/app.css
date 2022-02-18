@@ -8,6 +8,11 @@ a, .btn-link {
     color: #0366d6;
 }
 
+button {
+    margin-left: 0.4rem;
+    margin-right: 0.4rem;
+}
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
