@@ -187,7 +187,7 @@
       "Microsoft.JSInterop.dll": "sha256-E3wWpdYhb0k2rxsSxtLYNRv652Vqa4jD10tJ7YcHMfU=",
       "Microsoft.JSInterop.WebAssembly.dll": "sha256-qCntZAfBCtfByp1bUyV5HBcJpgteCGZZ1pMzH5kVDnE=",
       "System.IO.Pipelines.dll": "sha256-3ET+mpR7F058YRj9YaLHOVXBqOW6iUxtIpeiKPYw4PA=",
-      "AvalonSharp.dll": "sha256-jSsxDGfB1blH8V7htwt8Qhzgvjaju8bzkVUkudMETsk="
+      "AvalonSharp.dll": "sha256-qypSx8UxoIolchwiImj9cr69BeInGIRVRNVqtW4f7Ik="
     },
     "lazyAssembly": null,
     "pdb": null,
