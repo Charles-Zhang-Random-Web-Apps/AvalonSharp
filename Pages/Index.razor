@@ -70,9 +70,9 @@
 {
     var mission = missions[i];
 <div class="pastMissionBox">
-    <h3>Mission @(i+1)</h3>
+    <h3>Mission @(i+1) (@(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎"))</h3>
     <div>
-        <string>@string.Join(", ", mission.Members.Select(m => m.Name))</string>: @(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎")
+        <strong>@string.Join(", ", mission.Members.Select(m => m.Name))</strong>
     </div>
 </div>
 }
@@ -139,7 +139,7 @@
 
     private void FinalizeMission(int downVote)
     {
-        missions.Add(new Mission(0, currentTeam.Teammates));
+        missions.Add(new Mission(downVote, currentTeam.Teammates));
         currentTeam = null;
     }
 }
