@@ -11,8 +11,8 @@
     {
         Member member = members[i];
     <div>
-        <button @onclick="() => member.IsGroupA = !member.IsGroupA" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button>
-        @if (!isMobile) {<span>Member @(i + 1): </span>}<input placeholder="@member.Name " size="@(isMobile ? 6 : 12)" @bind="@member.Name" style="margin-right: 0.4rem"/>
+        <button @onclick="() => member.IsGroupA = !member.IsGroupA" class="teamTypeButton" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button>
+        @if (!isMobile) {<span>Member @(i + 1): </span>}<input placeholder="@member.Name " size="@(isMobile ? 5 : 12)" @bind="@member.Name" style="margin-right: 0.4rem"/>
         @if (currentTeam == null || currentTeam.Leader != member)
         {
             <button @onclick="() => StartTeam(member)">@(isMobile ? "Lead" : "Start Team")</button>
