@@ -77,7 +77,10 @@
 </div>
 }
 
-<textarea rows="6" cols="50" @bind="personalNote"/>
+<div style="margin: 1rem">
+    <h3>Game Notes</h3>
+    <textarea rows="6" cols="50" @bind="personalNote" />
+</div>
 
 @code {
     private string personalNote { get; set; }
