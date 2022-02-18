@@ -53,3 +53,17 @@ button {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+
+.teamBox {
+    border: 1px solid darkgray;
+    margin: 0.4rem;
+    padding: 0.4rem;
+}
+
+.votingLabel {
+    background-color: darkgray;
+    color: gray;
+    padding: 2px;
+    margin: 2px;
+}

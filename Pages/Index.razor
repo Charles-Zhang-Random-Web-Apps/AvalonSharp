@@ -11,7 +11,7 @@
         Member member = members[i];
     <div>
         <button @onclick="() => member.IsGroupA = !member.IsGroupA" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button> 
-        Member @(i + 1): @member.Name 
+        Member @(i + 1): <input placeholder="@member.Name " @bind="@member.Name" />
         @if (currentTeam == null || currentTeam.Leader != member)
         {
             <button @onclick="() => StartTeam(member)">Start Team</button> 
@@ -20,7 +20,9 @@
         {
             <button @onclick="() => JoinTeam(member)">Join Team</button> 
         }
-        @if (currentTeam != null && !currentTeam.Votes.Any(v => v.Key == member))
+        @if (currentTeam != null
+           && !currentTeam.Teammates.Contains(member) && currentTeam.Leader != member
+           && !currentTeam.Votes.Any(v => v.Key == member) )
         {
             <button @onclick="() => Vote(member, true)">Vote In Favor</button> 
             <button @onclick="() => Vote(member, false)">Vote Against</button> 
@@ -31,17 +33,17 @@
 
 @foreach (var team in teams)
 {
-<div>
-    <div style="border: 1px solid gray">
-        <strong>@team.Leader.Name </strong> Tried to Create a Team With @string.Join(", ", team.Teammates.Select(m => m.Name)): 
+<div class="teamBox">
+    <div>
+        <strong>@team.Leader.Name </strong> Tried to Create a Team With <strong>@string.Join(", ", team.Teammates.Select(m => m.Name))</strong>: 
         @if(team.Success == null) { <span>PENDING</span> }
         else { <span>@(team.Success.Value ? "Succeed" : "Failed")</span> }
     </div>
     <div>
-        Voting: 
+        <span class="votingLabel">Voting</span>
         @foreach (var vote in team.Votes.OrderBy(v => v.Key.ID))
         {
-            <span>@vote.Key.Name: @vote.Value.InFavor</span>
+    <span><strong>@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;&nbsp;&nbsp;</span>
         }
     </div>
 </div>
@@ -83,17 +85,21 @@
         currentTeam = new Team();
         currentTeam.Leader = leader;
         teams.Add(currentTeam);
-        currentTeam.Votes.Add(leader, new Vote(leader, true));
+        // currentTeam.Votes.Add(leader, new Vote(leader, true));
     }
 
     private void JoinTeam(Member member)
     {
         currentTeam.Teammates.Add(member);
-        currentTeam.Votes.Add(member, new Vote(member, true));
+        // currentTeam.Votes.Add(member, new Vote(member, true));
     }
 
     private void Vote(Member member, bool inFavor)
     {
         currentTeam.Votes.Add(member, new Vote(member, inFavor));
+        if(currentTeam.Votes.Count == groupSize)
+        {
+            currentTeam.Success = currentTeam.Votes.All(v => v.Value.InFavor);
+        }
     }
 }
