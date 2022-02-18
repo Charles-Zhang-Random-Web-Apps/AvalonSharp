@@ -12,7 +12,7 @@
         Member member = members[i];
     <div>
         <button @onclick="() => member.IsGroupA = !member.IsGroupA" class="teamTypeButton" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button>
-        @if (!isMobile) {<span>Member @(i + 1): </span>}<input placeholder="@member.Name " size="@(isMobile ? 5 : 12)" @bind="@member.Name" style="margin-right: 0.4rem"/>
+        @if (!isMobile) {<span>Member @(i + 1): </span>}<input placeholder="@member.Name " size="@(isMobile ? 5 : 12)" @bind="@member.Name" style="margin-right: 0.4rem" class="memberNameInput"/>
         @if (currentTeam == null || currentTeam.Leader != member)
         {
             <button @onclick="() => StartTeam(member)">@(isMobile ? "Lead" : "Start Team")</button>
@@ -47,7 +47,7 @@
         else { <span>@(team.Success.Value ? "Succeed" : "Failed")</span> }
     </div>
     <div>
-        <span class="votingLabel">Voting</span>
+        <span class="votingLabel">Voting</span>@if (isMobile) { <br/> }
         @foreach (var vote in team.Votes.OrderBy(v => v.Key.ID))
         {
     <span><strong>@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;&nbsp;&nbsp;</span>
@@ -87,6 +87,16 @@
     <textarea rows="6" cols="@(isMobile ? 20 : 50 )" @bind="personalNote" />
 </div>
 
+<div class="analysisBox">
+    <h3>Analysis</h3>
+    @foreach(Member member in members)
+    {
+
+    }
+</div>
+
+<button @onclick="@restart">Restart Game</button>
+
 @code {
     private bool isMobile { get; set; }
     private string personalNote { get; set; }
@@ -94,6 +104,7 @@
     private Member[] members;
     private List<Team> teams = new List<Team>();
     private List<Mission> missions = new List<Mission>();
+    private Team currentTeam = null;
     private DotNetObjectReference<Index>? objRef;
 
     protected override void OnInitialized()
@@ -135,7 +146,6 @@
         }
     }
 
-    private Team currentTeam = null;
     private void StartTeam(Member leader)
     {
         currentTeam = new Team();
@@ -163,5 +173,18 @@
     {
         missions.Add(new Mission(downVote, currentTeam.Teammates));
         currentTeam = null;
+    }
+
+    private void restart()
+    {
+        personalNote = null;
+        foreach (Member member in members)
+        {
+            member.IsGroupA = true;
+        }
+        teams = new List<Team>();
+        missions = new List<Mission>();
+        currentTeam = null;
+        StateHasChanged();
     }
 }

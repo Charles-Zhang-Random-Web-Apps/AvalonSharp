@@ -80,14 +80,25 @@ button {
     padding: 0.4rem;
 }
 
+.analysisBox {
+    border: 1px solid darkgray;
+    margin: 0.4rem;
+    padding: 0.4rem;
+}
+
 .teamTypeButton {
+    font-size: 1rem;
+}
+
+.memberNameInput {
     font-size: 1rem;
 }
 
 @media only screen and (max-width: 960px) {
     button {
-        margin-left: 2px;
-        margin-right: 2px;
+        font-size: 12px;
+        margin-left: 1px;
+        margin-right: 1px;
     }
 
     .content {
@@ -116,5 +127,14 @@ button {
     .currentMissionBox {
         margin: 2px;
         padding: 2px;
+    }
+
+    .analysisBox {
+        margin: 2px;
+        padding: 2px;
+    }
+
+    .memberNameInput {
+        font-size: 12px;
     }
 }
