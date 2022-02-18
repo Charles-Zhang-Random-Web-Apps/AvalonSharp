@@ -67,3 +67,15 @@ button {
     padding: 2px;
     margin: 2px;
 }
+
+.pastMissionBox {
+    border: 2px solid darkgray;
+    margin: 0.4rem;
+    padding: 0.4rem;
+}
+
+.currentMissionBox {
+    border: 1px dashed darkgray;
+    margin: 0.4rem;
+    padding: 0.4rem;
+}

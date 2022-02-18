@@ -10,5 +10,6 @@ namespace AvalonSharp.Models
         public int ID { get; set; }
         public string Name { get; set; }
         public bool IsGroupA { get; set; }
+        public string MemberNote { get; set; }
     }
 }

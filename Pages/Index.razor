@@ -10,23 +10,26 @@
     {
         Member member = members[i];
     <div>
-        <button @onclick="() => member.IsGroupA = !member.IsGroupA" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button> 
-        Member @(i + 1): <input placeholder="@member.Name " @bind="@member.Name" />
+        <button @onclick="() => member.IsGroupA = !member.IsGroupA" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button>
+        Member @(i + 1): <input placeholder="@member.Name " @bind="@member.Name" style="margin-right: 0.4rem"/>
         @if (currentTeam == null || currentTeam.Leader != member)
         {
-            <button @onclick="() => StartTeam(member)">Start Team</button> 
-        }
-        @if (currentTeam != null && !currentTeam.Teammates.Contains(member) && currentTeam.Leader != member)
-        {
-            <button @onclick="() => JoinTeam(member)">Join Team</button> 
+            <button @onclick="() => StartTeam(member)">Start Team</button>
         }
         @if (currentTeam != null
-           && !currentTeam.Teammates.Contains(member) && currentTeam.Leader != member
-           && !currentTeam.Votes.Any(v => v.Key == member) )
+          && !currentTeam.Candidates.Contains(member) && currentTeam.Leader != member
+          && !currentTeam.Votes.Any(v => v.Key == member))
         {
-            <button @onclick="() => Vote(member, true)">Vote In Favor</button> 
-            <button @onclick="() => Vote(member, false)">Vote Against</button> 
+            <button @onclick="() => JoinTeam(member)">Join Team</button>
         }
+        @if (currentTeam != null
+         && !currentTeam.Candidates.Contains(member) && currentTeam.Leader != member
+         && !currentTeam.Votes.Any(v => v.Key == member))
+        {
+            <button @onclick="() => Vote(member, true)">Vote In Favor</button>
+            <button @onclick="() => Vote(member, false)">Vote Against</button>
+        }
+        <input placeholder="Add Additional Notes Here" @bind="@member.MemberNote" />
     </div>
     }
 </div>
@@ -35,7 +38,7 @@
 {
 <div class="teamBox">
     <div>
-        <strong>@team.Leader.Name </strong> Tried to Create a Team With <strong>@string.Join(", ", team.Teammates.Select(m => m.Name))</strong>: 
+        <strong>@team.Leader.Name </strong> Tried to Create a Team With <strong>@string.Join(", ", team.Candidates.Select(m => m.Name))</strong>: 
         @if(team.Success == null) { <span>PENDING</span> }
         else { <span>@(team.Success.Value ? "Succeed" : "Failed")</span> }
     </div>
@@ -49,11 +52,39 @@
 </div>
 }
 
-@code {
+@if(currentTeam != null)
+{
+<div class="currentMissionBox">
+    <h3>Current Mission</h3>
+    <div>
+        <button @onclick="() => FinalizeMission(0)">Success</button>
+        @for (int i = 1; i <= currentTeam.Teammates.Count; i++)
+        {
+            <button @onclick="() => FinalizeMission(i)">Fail with @(i)x👎</button>
+        }
+    </div>
+</div>
+}
 
+@for (int i = 0; i < missions.Count; i++)
+{
+    var mission = missions[i];
+<div class="pastMissionBox">
+    <h3>Mission @(i+1)</h3>
+    <div>
+        <string>@string.Join(", ", mission.Members.Select(m => m.Name))</string>: @(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎")
+    </div>
+</div>
+}
+
+<textarea rows="6" cols="50" @bind="personalNote"/>
+
+@code {
+    private string personalNote { get; set; }
     private int groupSize { get; set; } = 9;
     private Member[] members;
     private List<Team> teams = new List<Team>();
+    private List<Mission> missions = new List<Mission>();
 
     protected override void OnInitialized()
     {
@@ -85,21 +116,27 @@
         currentTeam = new Team();
         currentTeam.Leader = leader;
         teams.Add(currentTeam);
-        // currentTeam.Votes.Add(leader, new Vote(leader, true));
     }
 
     private void JoinTeam(Member member)
     {
-        currentTeam.Teammates.Add(member);
-        // currentTeam.Votes.Add(member, new Vote(member, true));
+        currentTeam.Candidates.Add(member);
     }
 
     private void Vote(Member member, bool inFavor)
     {
         currentTeam.Votes.Add(member, new Vote(member, inFavor));
-        if(currentTeam.Votes.Count == groupSize)
+        if(currentTeam.Votes.Count == groupSize
+            || currentTeam.Votes.Count == groupSize - 1 - currentTeam.Candidates.Count)
         {
-            currentTeam.Success = currentTeam.Votes.All(v => v.Value.InFavor);
+            currentTeam.Success = currentTeam.Votes.Count(v => v.Value.InFavor) >
+                currentTeam.Votes.Count(k => !k.Value.InFavor);
         }
+    }
+
+    private void FinalizeMission(int downVote)
+    {
+        missions.Add(new Mission(0, currentTeam.Teammates));
+        currentTeam = null;
     }
 }
