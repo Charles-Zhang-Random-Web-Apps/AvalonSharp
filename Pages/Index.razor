@@ -47,7 +47,7 @@
     </div>
     <div>
         <span class="votingLabel">@(team.Success == null ? "Voting" : "Votes")</span>@if (isMobile) { <br/> }
-        @foreach (var vote in team.Votes.OrderBy(v => v.Key.ID))
+        @foreach (var vote in team.Votes.OrderBy(v => v.Key.ID).OrderByDescending(v => v.Value.InFavor))
         {
     <span><strong class="@getTeamMarker(vote.Key)">@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;@(!isMobile ? "&nbsp;&nbsp;" : "")</span>
         }
@@ -64,7 +64,7 @@
         @for (int i = 1; i <= currentTeam.Teammates.Count; i++)
         {
             int localVarForBinding = i;
-            <button @onclick="() => FinalizeMission(localVarForBinding)">Fail with @(i)x👎</button>
+            <button @onclick="() => FinalizeMission(localVarForBinding)">Fail with @(i)👎</button>
         }
     </div>
 </div>
