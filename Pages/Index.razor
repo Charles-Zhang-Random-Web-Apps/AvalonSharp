@@ -13,18 +13,18 @@
     <div>
         <button @onclick="() => member.IsGroupA = !member.IsGroupA" class="teamTypeButton" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button>
         @if (!isMobile) {<span>Member @(i + 1): </span>}<input placeholder="@member.Name " size="@(isMobile ? 5 : 12)" @bind="@member.Name" style="margin-right: 0.4rem" class="memberNameInput"/>
-        @if (currentTeam == null || currentTeam.Leader != member)
+        @if (currentTeam == null)
         {
             <button @onclick="() => StartTeam(member)">@(isMobile ? "Lead" : "Start Team")</button>
         }
         @if (currentTeam != null
           && !currentTeam.Candidates.Contains(member) && currentTeam.Leader != member
-          && !currentTeam.Votes.Any(v => v.Key == member))
+          && currentTeam.Votes.Count == 0)
         {
             <button @onclick="() => JoinTeam(member)">@(isMobile ? "Join" : "Join Team")</button>
         }
         @if (currentTeam != null
-         && !currentTeam.Candidates.Contains(member) && currentTeam.Leader != member
+         && currentTeam.Leader != member
          && !currentTeam.Votes.Any(v => v.Key == member))
         {
             <button @onclick="() => Vote(member, true)">@(isMobile ? "✔️" : "Vote In Favor")</button>
@@ -42,21 +42,21 @@
 {
 <div class="teamBox">
     <div>
-        <strong>@team.Leader.Name </strong> Tried to Create a Team With <strong>@string.Join(", ", team.Candidates.Select(m => m.Name))</strong>: 
+        <strong class="@getTeamMarker(team.Leader)">@team.Leader.Name </strong> Tried to Create a Team With <strong>@((MarkupString)string.Join(", ", team.Candidates.Select(m => $"<span class=\"{getTeamMarker(m)}\">{m.Name}</span>")))</strong>: 
         @if(team.Success == null) { <span>PENDING</span> }
         else { <span>@(team.Success.Value ? "Succeed" : "Failed")</span> }
     </div>
     <div>
-        <span class="votingLabel">Voting</span>@if (isMobile) { <br/> }
+        <span class="votingLabel">@(team.Success == null ? "Voting" : "Votes")</span>@if (isMobile) { <br/> }
         @foreach (var vote in team.Votes.OrderBy(v => v.Key.ID))
         {
-    <span><strong>@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <span><strong class="@getTeamMarker(vote.Key)">@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;@(!isMobile ? "&nbsp;&nbsp;" : "")</span>
         }
     </div>
 </div>
 }
 
-@if(currentTeam != null)
+@if(currentTeam != null && currentTeam.Success != null)
 {
 <div class="currentMissionBox">
     <h3>Current Mission</h3>
@@ -77,7 +77,7 @@
 <div class="pastMissionBox">
     <em>Mission @(i+1) (@(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎"))</em>
     <div>
-        <strong>@string.Join(", ", mission.Members.Select(m => m.Name))</strong>
+        <strong>@((MarkupString)string.Join(", ", mission.Members.Select(m => $"<span class=\"{getTeamMarker(m)}\">{m.Name}</span>")))</strong>
     </div>
 </div>
 }
@@ -87,13 +87,34 @@
     <textarea rows="6" cols="@(isMobile ? 20 : 50 )" @bind="personalNote" />
 </div>
 
+@if(missions.Count != 0)
+{
 <div class="analysisBox">
     <h3>Analysis</h3>
-    @foreach(Member member in members)
+    @foreach (Member member in members)
     {
-
+        <div>
+            <em>@member.Name</em>: 
+            @if(member.IsLikelySpy)
+            {
+                <span>Likely <strong>Spy</strong> (because downvoting mission).</span>
+            }
+            else if(member.IsLikelyAccomplice)
+            {
+                <span>Likely <strong>Spy</strong> (because supporting spy teams).</span>
+            }
+            else if(member.IsLikelySpyLead)
+            {
+                <span>Likely <strong>Spy</strong> (because leading spy teams).</span>
+            }
+            else
+            {
+                <span>UNKNOWN</span>
+            }
+        </div>
     }
 </div>
+}
 
 <button @onclick="@restart">Restart Game</button>
 
@@ -134,6 +155,15 @@
         updateMemberData();
     }
 
+    private string getTeamMarker(Member member)
+    {
+        if (!member.IsGroupA) return "badTeamMarker";
+        else
+        {
+            return (member.IsLikelySpy || member.IsLikelyAccomplice || member.IsLikelySpyLead) ? "badTeamMarker" : "goodTeamMarker";
+        }
+    }
+
     private void updateMemberData()
     {
         members = new Member[groupSize];
@@ -162,10 +192,16 @@
     {
         currentTeam.Votes.Add(member, new Vote(member, inFavor));
         if(currentTeam.Votes.Count == groupSize
-            || currentTeam.Votes.Count == groupSize - 1 - currentTeam.Candidates.Count)
+            || currentTeam.Votes.Count == groupSize - 1)
         {
             currentTeam.Success = currentTeam.Votes.Count(v => v.Value.InFavor) >
                 currentTeam.Votes.Count(k => !k.Value.InFavor);
+
+            // Skip mission
+            if(currentTeam.Success == false)
+            {
+                currentTeam = null;
+            }
         }
     }
 
@@ -173,6 +209,26 @@
     {
         missions.Add(new Mission(downVote, currentTeam.Teammates));
         currentTeam = null;
+
+        foreach (var member in members)
+        {
+            if (missions.Where(m => m.Success == false).Any(m => m.Members.Contains(member)))
+                member.IsLikelySpy = true;
+        }
+        var potentialSpys = members.Where(m => m.IsLikelySpy);
+        foreach (var member in members)
+        {
+            if (teams // Find team formations that contain potential spies
+                .Where(t => t.Teammates.Intersect(potentialSpys).Count() != 0)
+                .Where(v => v.Votes.Any(v => v.Key == member && v.Value.InFavor == true))  // Find such suspicious team formations where current member voted favour
+                .Count() > 0)
+                member.IsLikelyAccomplice = true;
+            if (teams // Find team formations that contain potential spies
+                .Where(t => t.Teammates.Intersect(potentialSpys).Count() != 0)
+                .Where(v => v.Leader == member)  // Where this member is potentially organizing spies
+                .Count() > 0)
+                member.IsLikelySpyLead = true;
+        }
     }
 
     private void restart()
@@ -181,6 +237,9 @@
         foreach (Member member in members)
         {
             member.IsGroupA = true;
+            member.IsLikelySpy = false;
+            member.IsLikelyAccomplice = false;
+            member.IsLikelySpyLead = false;
         }
         teams = new List<Team>();
         missions = new List<Mission>();

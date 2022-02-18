@@ -68,6 +68,14 @@ button {
     margin: 2px;
 }
 
+.goodTeamMarker {
+    color: forestgreen;
+}
+
+.badTeamMarker {
+    color: orangered;
+}
+
 .pastMissionBox {
     border: 2px solid darkgray;
     margin: 0.4rem;
