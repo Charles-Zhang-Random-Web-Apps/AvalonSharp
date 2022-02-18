@@ -49,7 +49,7 @@
         <span class="votingLabel">@(team.Success == null ? "Voting" : "Votes")</span>@if (isMobile) { <br/> }
         @foreach (var vote in team.Votes.OrderBy(v => v.Key.ID).OrderByDescending(v => v.Value.InFavor))
         {
-    <span><strong class="@getTeamMarker(vote.Key)">@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;@(!isMobile ? "&nbsp;&nbsp;" : "")</span>
+    <span><strong class="@getTeamMarker(vote.Key)">@vote.Key.Name</strong>@(vote.Value.InFavor ? "👍" : "👎")&nbsp;&nbsp;@(!isMobile ? (MarkupString)"&nbsp;&nbsp;" : "")</span>
         }
     </div>
 </div>
