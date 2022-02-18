@@ -3,7 +3,7 @@
 @inject IJSRuntime jsRuntime
 
 <div>
-    Group Size: <input placeholder="@groupSize" @onchange="@onChange" value="@groupSize" />
+    Group Size: <input placeholder="@groupSize" @onchange="@onChange" size="4" value="@groupSize" />
 </div>
 
 <div>
@@ -12,25 +12,28 @@
         Member member = members[i];
     <div>
         <button @onclick="() => member.IsGroupA = !member.IsGroupA" style="background-color: @(member.IsGroupA ? "White" : "Black"); color: @(member.IsGroupA ? "Black" : "White");">@(member.IsGroupA ? "Good" : "Bad")</button>
-        Member @(i + 1): <input placeholder="@member.Name " @bind="@member.Name" style="margin-right: 0.4rem"/>
+        @if (!isMobile) {<span>Member @(i + 1): </span>}<input placeholder="@member.Name " size="@(isMobile ? 6 : 12)" @bind="@member.Name" style="margin-right: 0.4rem"/>
         @if (currentTeam == null || currentTeam.Leader != member)
         {
-            <button @onclick="() => StartTeam(member)">Start Team</button>
+            <button @onclick="() => StartTeam(member)">@(isMobile ? "Lead" : "Start Team")</button>
         }
         @if (currentTeam != null
           && !currentTeam.Candidates.Contains(member) && currentTeam.Leader != member
           && !currentTeam.Votes.Any(v => v.Key == member))
         {
-            <button @onclick="() => JoinTeam(member)">Join Team</button>
+            <button @onclick="() => JoinTeam(member)">@(isMobile ? "Join" : "Join Team")</button>
         }
         @if (currentTeam != null
          && !currentTeam.Candidates.Contains(member) && currentTeam.Leader != member
          && !currentTeam.Votes.Any(v => v.Key == member))
         {
-            <button @onclick="() => Vote(member, true)">Vote In Favor</button>
-            <button @onclick="() => Vote(member, false)">Vote Against</button>
+            <button @onclick="() => Vote(member, true)">@(isMobile ? "✔️" : "Vote In Favor")</button>
+            <button @onclick="() => Vote(member, false)">@(isMobile ? "❌" : "Vote Against")</button>
         }
-        <input placeholder="Add Additional Notes Here" @bind="@member.MemberNote" />
+        @if(!isMobile)
+        {
+            <input placeholder="Add Additional Notes Here" @bind="@member.MemberNote" />
+        }
     </div>
     }
 </div>
@@ -72,7 +75,7 @@
 {
     var mission = missions[i];
 <div class="pastMissionBox">
-    <h4>Mission @(i+1) (@(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎"))</h4>
+    <em>Mission @(i+1) (@(mission.Success ? "Success" : $"Fail with {mission.FailCount}x👎"))</em>
     <div>
         <strong>@string.Join(", ", mission.Members.Select(m => m.Name))</strong>
     </div>
@@ -81,13 +84,11 @@
 
 <div style="margin: 1rem">
     <h3>Game Notes</h3>
-    <textarea rows="6" cols="50" @bind="personalNote" />
+    <textarea rows="6" cols="@(isMobile ? 20 : 50 )" @bind="personalNote" />
 </div>
 
-<h1>@deviceType</h1>
-
 @code {
-    private string deviceType { get; set; }
+    private bool isMobile { get; set; }
     private string personalNote { get; set; }
     private int groupSize { get; set; } = 9;
     private Member[] members;
@@ -105,14 +106,13 @@
         objRef = DotNetObjectReference.Create(this);
         await jsRuntime.InvokeVoidAsync("registerDotNetHelper", objRef);
 
-        bool temp = await jsRuntime.InvokeAsync<bool>("isSmallFormFactor");
-        deviceType = temp ? "Mobile" : "Desktop";
+        isMobile = await jsRuntime.InvokeAsync<bool>("isSmallFormFactor");
     }
 
     [JSInvokable]
     public void performScreenChange(bool smallFactor)
     {
-        deviceType = smallFactor ? "Mobile" : "Desktop";
+        isMobile = smallFactor;
         StateHasChanged();
     }
 
